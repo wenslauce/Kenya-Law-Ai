@@ -66,7 +66,6 @@ const isPoliticalQuery = (query: string): boolean => {
   if (hasPoliticalKeyword) {
     return !hasLegalContext(query);
   }
-
   return false;
 const POLITICAL_RESPONSE = "Oops! I can’t dive into discussions about specific politicians or current political drama. But hey, I can break down Kenya’s Constitution like your favorite teacher—minus the long, boring lectures. Want to know about rights, government structures, or legal principles? I’m your go-to legal assistant. Just ask!";
 
@@ -95,7 +94,6 @@ Your mission? To make complex legal concepts as clear as a sunny day in Nairobi�
 
 <h3>Remember:</h3>  
 Stick to constitutional principles, explain with clarity, and make law feel less intimidating—maybe even a little fun!`;
-
 export const getGeminiResponse = async (prompt: string) => {
   // Check if query is political before making API call
   if (isPoliticalQuery(prompt)) {

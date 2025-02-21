@@ -62,13 +62,17 @@ const isPoliticalQuery = (query: string): boolean => {
     lowercaseQuery.includes(keyword.toLowerCase())
   );
 
-  // If query has political keyword but also has legal context, it might be valid
+  // If query has a political keyword but also has legal context, it might be valid
   if (hasPoliticalKeyword) {
     return !hasLegalContext(query);
   }
   return false;
+};
+
+// Response for political queries
 const POLITICAL_RESPONSE = "Oops! I can’t dive into discussions about specific politicians or current political drama. But hey, I can break down Kenya’s Constitution like your favorite teacher—minus the long, boring lectures. Want to know about rights, government structures, or legal principles? I’m your go-to legal assistant. Just ask!";
 
+// System prompt for legal assistant
 const SYSTEM_PROMPT = `You are a friendly, witty, and knowledgeable legal assistant specializing in Kenyan Constitutional law. 
 Your mission? To make complex legal concepts as clear as a sunny day in Nairobi—while keeping things accurate and engaging.
 
@@ -94,6 +98,8 @@ Your mission? To make complex legal concepts as clear as a sunny day in Nairobi�
 
 <h3>Remember:</h3>  
 Stick to constitutional principles, explain with clarity, and make law feel less intimidating—maybe even a little fun!`;
+
+// Function to get response from Gemini API
 export const getGeminiResponse = async (prompt: string) => {
   // Check if query is political before making API call
   if (isPoliticalQuery(prompt)) {
@@ -103,10 +109,10 @@ export const getGeminiResponse = async (prompt: string) => {
   const apiKey = getApiKey();
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-  
+
   try {
     const fullPrompt = `${SYSTEM_PROMPT}\n\nUser Question: ${prompt}\n\nPlease provide a well-formatted explanation based on the Constitution of Kenya:`;
-    
+
     const result = await model.generateContent(fullPrompt);
     const response = await result.response;
     return response.text();

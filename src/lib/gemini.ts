@@ -55,7 +55,7 @@ const hasLegalContext = (query: string): boolean => {
   return LEGAL_CONTEXT_KEYWORDS.some(keyword => lowercaseQuery.includes(keyword.toLowerCase()));
 };
 
-// Enhanced function to check if query is about political figures or elections
+// Function to check if query is political
 const isPoliticalQuery = (query: string): boolean => {
   const lowercaseQuery = query.toLowerCase();
   const hasPoliticalKeyword = POLITICAL_KEYWORDS.some(keyword => 
@@ -72,9 +72,12 @@ const isPoliticalQuery = (query: string): boolean => {
 // Response for political queries
 const POLITICAL_RESPONSE = "Oops! I can’t dive into discussions about specific politicians or current political drama. But hey, I can break down Kenya’s Constitution like your favorite teacher—minus the long, boring lectures. Want to know about rights, government structures, or legal principles? I’m your go-to legal assistant. Just ask!";
 
-// System prompt for legal assistant
+// Maintain conversation history
+let conversationHistory: string[] = [];
+
+// System prompt for a dynamic conversation
 const SYSTEM_PROMPT = `You are a friendly, witty, and knowledgeable legal assistant specializing in Kenyan Constitutional law. 
-Your mission? To make complex legal concepts as clear as a sunny day in Nairobi—while keeping things accurate and engaging.
+You engage in fluid and natural conversations, keeping track of past interactions to provide a seamless experience.
 
 <h3>Here’s the deal:</h3>
 1. When explaining political positions (like the President, Governor, or Senator), focus ONLY on their constitutional roles, powers, and duties.  
@@ -84,22 +87,29 @@ Your mission? To make complex legal concepts as clear as a sunny day in Nairobi�
    - Election results, campaigns, or political party matters  
 3. Always steer the conversation toward constitutional principles, legal structures, and governance frameworks. If someone asks about a political hot topic, gracefully redirect them to constitutional guidelines.
 
-<h3>How to respond like a pro:</h3>
+<h3>How to respond:</h3>
+1. Keep responses natural, witty, and conversational.  
+2. Maintain context—remember previous messages and refer back when needed.  
+3. Use engaging, relatable language—no textbook jargon.  
+4. If the user seems lost, summarize key points before moving forward.  
+5. Be flexible—adapt to casual or formal tones depending on the conversation.  
+
+<h3>Formatting Guidelines:</h3>
 1. Use HTML-style formatting for clarity:
    - <b>Bold</b> for key legal terms  
    - <i>Italics</i> for definitions or special terms  
    - <h3>Headings</h3> to organize responses  
    - <br><br> for easy reading  
-2. Keep responses structured and easy to follow—like a well-written legal brief but way less dry.  
+2. Break down tricky legal stuff into bite-sized, digestible pieces.  
 3. When citing articles, format them as: <b>Article X</b>.  
-4. Break down tricky legal stuff into bite-sized, digestible pieces.  
-5. Always provide relatable, real-world examples (no textbook jargon!).  
-6. If a question strays too far from Kenyan constitutional law, kindly guide the user back on track.
 
-<h3>Remember:</h3>  
+<h3>Example of an engaging response:</h3>
+User: "What does the Senate do?"  
+You: "Ah, great question! Think of the Senate as the 'wise council' of Parliament. They’re the ones reviewing laws, checking on county governments, and keeping national interests in check. <b>Article 96</b> spells this out clearly. Want a quick breakdown of their specific powers?"  
+
 Stick to constitutional principles, explain with clarity, and make law feel less intimidating—maybe even a little fun!`;
 
-// Function to get response from Gemini API
+// Function to get response from Gemini API while maintaining context
 export const getGeminiResponse = async (prompt: string) => {
   // Check if query is political before making API call
   if (isPoliticalQuery(prompt)) {
@@ -111,11 +121,20 @@ export const getGeminiResponse = async (prompt: string) => {
   const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
   try {
-    const fullPrompt = `${SYSTEM_PROMPT}\n\nUser Question: ${prompt}\n\nPlease provide a well-formatted explanation based on the Constitution of Kenya:`;
+    // Add user input to conversation history
+    conversationHistory.push(`User: ${prompt}`);
+
+    // Create full conversation history for Gemini API
+    const fullPrompt = `${SYSTEM_PROMPT}\n\n${conversationHistory.join("\n")}\n\nAssistant:`;
 
     const result = await model.generateContent(fullPrompt);
     const response = await result.response;
-    return response.text();
+    const responseText = response.text();
+
+    // Add AI response to conversation history
+    conversationHistory.push(`Assistant: ${responseText}`);
+
+    return responseText;
   } catch (error) {
     console.error("Error getting Gemini response:", error);
     throw error;
